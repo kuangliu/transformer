@@ -35,7 +35,7 @@ class ViT(nn.Module):
         out = out.permute(0, 2, 1)     # [N,L,D]
         out = self.encoder(out, None)
         out = out.view(N, 8, 8, -1).permute(0, 3, 1, 2)
-        out = F.avg_pool2d(out, 8)
+        out = F.max_pool2d(out, 8)
         out = self.linear(out.view(N, -1))
         return out
 
