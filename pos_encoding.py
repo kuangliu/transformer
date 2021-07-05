@@ -19,8 +19,8 @@ class PosEncoding(nn.Module):
     def forward(self, x):
         N, L, D = x.shape
         angle_rads = self.get_angles(
-            torch.arange(L)[:, None],
-            torch.arange(D)[None, :],
+            torch.arange(L, device=x.device)[:, None],
+            torch.arange(D, device=x.device)[None, :],
             D
         )
         # apply sin to even indices in the array; 2i
