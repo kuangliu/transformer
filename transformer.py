@@ -29,14 +29,19 @@ class ViT(nn.Module):
         self.encoder = Encoder(num_layers, d_model, num_heads, dff, rate)
         self.linear = nn.Linear(d_model, 10)
 
+        self.cls_token = nn.Parameter(torch.zeros(1, 1, d_model))
+
     def forward(self, x):
         N = x.size(0)
         out = self.conv1(x)
         out = out.reshape(N, self.d_model, -1)  # [N,D,L]
         out = out.permute(0, 2, 1)     # [N,L,D]
+
+        cls_tokens = self.cls_token.expand(N, -1, -1)
+        out = torch.cat([cls_tokens, out], dim=1)
+
         out = self.encoder(out, None)
-        out = out.view(N, 8, 8, -1).permute(0, 3, 1, 2)
-        out = F.max_pool2d(out, 8)
+        out = out[:, 0, :]
         out = self.linear(out.view(N, -1))
         return out
 
