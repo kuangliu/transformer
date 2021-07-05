@@ -45,10 +45,12 @@ class Encoder(nn.Module):
         self.layers = nn.ModuleList([EncoderLayer(d_model, num_heads, dff, rate)
                                      for _ in range(num_layers)])
 
-        self.pos_encoding = PosEncoding()
+        #  self.pos_encoding = PosEncoding()
+        self.pos_encoding = nn.Parameter(torch.zeros(1, 64 + 1, d_model))
 
     def forward(self, x, mask):
-        out = self.pos_encoding(x)
+        #  out = self.pos_encoding(x)
+        out = x + self.pos_encoding
         out = F.dropout(out, p=self.rate)
         for layer in self.layers:
             out = layer(out, mask)
