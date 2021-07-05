@@ -24,6 +24,7 @@ class Transformer(nn.Module):
 class ViT(nn.Module):
     def __init__(self, num_layers, d_model, num_heads, dff, rate=0.1):
         super().__init__()
+        self.d_model = d_model
         self.conv1 = nn.Conv2d(3, d_model, kernel_size=4, stride=4, padding=0)
         self.encoder = Encoder(num_layers, d_model, num_heads, dff, rate)
         self.linear = nn.Linear(d_model, 10)
@@ -31,7 +32,7 @@ class ViT(nn.Module):
     def forward(self, x):
         N = x.size(0)
         out = self.conv1(x)
-        out = out.reshape(N, 256, -1)  # [N,D,L]
+        out = out.reshape(N, self.d_model, -1)  # [N,D,L]
         out = out.permute(0, 2, 1)     # [N,L,D]
         out = self.encoder(out, None)
         out = out.view(N, 8, 8, -1).permute(0, 3, 1, 2)
