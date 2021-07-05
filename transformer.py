@@ -25,17 +25,30 @@ class ViT(nn.Module):
     def __init__(self, num_layers, d_model, num_heads, dff, rate=0.1):
         super().__init__()
         self.d_model = d_model
-        self.conv1 = nn.Conv2d(3, d_model, kernel_size=4, stride=4, padding=0)
+        self.tokenizer = self.make_tokenizer()
         self.encoder = Encoder(num_layers, d_model, num_heads, dff, rate)
         self.linear = nn.Linear(d_model, 10)
-
         self.cls_token = nn.Parameter(torch.zeros(1, 1, d_model))
+
+    def make_tokenizer(self):
+        layers = [
+            nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(True),
+            nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(True),
+            nn.Conv2d(128, d_model, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(d_model),
+            nn.ReLU(True),
+        ]
+        return nn.Sequential(*layers)
 
     def forward(self, x):
         N = x.size(0)
-        out = self.conv1(x)
+        out = self.tokenizer(x)
         out = out.reshape(N, self.d_model, -1)  # [N,D,L]
-        out = out.permute(0, 2, 1)     # [N,L,D]
+        out = out.permute(0, 2, 1)  # [N,L,D]
 
         cls_tokens = self.cls_token.expand(N, -1, -1)
         out = torch.cat([cls_tokens, out], dim=1)
@@ -54,7 +67,7 @@ def test_transformer():
     print(out.shape)
 
 
-def test_cifartransformer():
+def test_vit():
     m = ViT(num_layers=2, d_model=256, num_heads=8, dff=1024)
     x = torch.randn(1, 3, 32, 32)
     y = m(x)
@@ -62,4 +75,4 @@ def test_cifartransformer():
 
 
 if __name__ == '__main__':
-    test_cifartransformer()
+    test_vit()
