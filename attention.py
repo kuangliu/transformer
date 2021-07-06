@@ -19,7 +19,8 @@ class MultiHeadAttention(nn.Module):
         self.out_layer = nn.Linear(d_model, d_model)
 
     def split_heads(self, x):
-        '''Split the last dimension into (num_heads, depth)>
+        '''Split the last dimension into (num_heads, depth).
+
         Transpose the result such that the shape is (batch_size, num_heads, seq_len, depth)
         '''
         N, L, D = x.shape
@@ -79,10 +80,10 @@ class MultiHeadAttention(nn.Module):
         scaled_attention, attention_weights = self.scaled_dot_product_attention(
             q, k, v, mask)
 
-        scaled_attention = scaled_attention.permute(
-            0, 2, 1, 3)  # [N,Lq,num_heads,depth]
-        scaled_attention = scaled_attention.reshape(
-            N, -1, self.d_model)  # [N,Lq,d_model]
+        # [N,Lq,num_heads,depth]
+        scaled_attention = scaled_attention.permute(0, 2, 1, 3)
+        # [N,Lq,d_model]
+        scaled_attention = scaled_attention.reshape(N, -1, self.d_model)
 
         output = self.out_layer(scaled_attention)
         return output, attention_weights
