@@ -38,8 +38,8 @@ class ViT(nn.Module):
             nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(True),
-            nn.Conv2d(128, d_model, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(d_model),
+            nn.Conv2d(128, self.d_model, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(self.d_model),
             nn.ReLU(True),
         ]
         return nn.Sequential(*layers)
