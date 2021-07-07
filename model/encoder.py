@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from attention import MultiHeadAttention
-from pos_encoding import PosEncoding
+from .attention import MultiHeadAttention
+from .pos_encoding import PosEncoding
 
 
 def point_wise_feed_forward_network(d_model, dff):
@@ -46,7 +46,7 @@ class Encoder(nn.Module):
                                      for _ in range(num_layers)])
 
         #  self.pos_encoding = PosEncoding()
-        self.pos_encoding = nn.Parameter(torch.zeros(1, 64 + 1, d_model))
+        self.pos_encoding = nn.Parameter(torch.zeros(1, 4*4 + 1, d_model))
 
     def forward(self, x, mask):
         #  out = self.pos_encoding(x)

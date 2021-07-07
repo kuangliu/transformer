@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from attention import MultiHeadAttention
-from encoder import point_wise_feed_forward_network
-from pos_encoding import PosEncoding
+from .attention import MultiHeadAttention
+from .encoder import point_wise_feed_forward_network
+from .pos_encoding import PosEncoding
 
 
 class DecoderLayer(nn.Module):
