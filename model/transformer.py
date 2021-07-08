@@ -58,10 +58,7 @@ class ResViT(nn.Module):
         self.conv1 = nn.Conv2d(
             3, 64, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
-        self.layer1 = self.make_layer(64, num_blocks=1, stride=1)
-        self.layer2 = self.make_layer(128, num_blocks=1, stride=2)
-        self.layer3 = self.make_layer(256, num_blocks=1, stride=2)
-        self.layer4 = self.make_layer(d_model, num_blocks=1, stride=2)
+        self.layer1 = self.make_layer(d_model, num_blocks=1, stride=2)
 
         self.encoder = Encoder(num_layers, d_model, num_heads, dff, rate)
         self.linear = nn.Linear(d_model, 10)
@@ -79,9 +76,6 @@ class ResViT(nn.Module):
         N = x.size(0)
         out = F.relu(self.bn1(self.conv1(x)))
         out = self.layer1(out)
-        out = self.layer2(out)
-        out = self.layer3(out)
-        out = self.layer4(out)
         out = out.reshape(N, self.d_model, -1)  # [N,D,L]
         out = out.permute(0, 2, 1)  # [N,L,D]
         cls_tokens = self.cls_token.expand(N, -1, -1)

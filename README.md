@@ -9,6 +9,5 @@ Reference:
 ## Accuracy
 Model | Acc.
 ------|------
-ResViT|93.17%
-
-The original ViT model performs really bad on the CIFAR10 dataset, which is disappointing. To achieve a better accuracy I use ResNet as the stem network.
+ViT | 
+ResViT |

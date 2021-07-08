@@ -46,7 +46,7 @@ class Encoder(nn.Module):
                                      for _ in range(num_layers)])
 
         #  self.pos_encoding = PosEncoding()
-        self.pos_encoding = nn.Parameter(torch.zeros(1, 4*4 + 1, d_model))
+        self.pos_encoding = nn.Parameter(torch.zeros(1, 16*16 + 1, d_model))
 
     def forward(self, x, mask):
         #  out = self.pos_encoding(x)
