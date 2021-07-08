@@ -52,7 +52,7 @@ class MultiHeadAttention(nn.Module):
         v = q.reshape(N*M, -1, D)
 
         qk = torch.bmm(q, k.transpose(1, 2))  # [N*M,Lq,Lk]
-        scaled_qk = qk * (D ** 0.5)
+        scaled_qk = qk * (D ** -0.5)
 
         # Add mask to scaled qk.
         if mask is not None:
