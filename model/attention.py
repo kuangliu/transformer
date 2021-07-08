@@ -51,7 +51,7 @@ class MultiHeadAttention(nn.Module):
         k = q.reshape(N*M, -1, D)
         v = q.reshape(N*M, -1, D)
 
-        qk = torch.bmm(q, k.transpose(1, 2))  # [N*M,Lq,Lk]
+        qk = q @ k.transpose(1, 2)  # [N*M,Lq,Lk]
         scaled_qk = qk * (D ** -0.5)
 
         # Add mask to scaled qk.
@@ -60,7 +60,7 @@ class MultiHeadAttention(nn.Module):
             scaled_qk += (mask * -1e9)
 
         attention_weights = F.softmax(scaled_qk, dim=-1)  # [N*M,Lq,Lk]
-        output = torch.bmm(attention_weights, v)          # [N*M,Lq,depth]
+        output = attention_weights @ v  # [N*M,Lq,depth]
         return output.view(N, M, Lq, D), attention_weights.view(N, M, Lq, -1)
 
     def forward(self, q, k, v, mask):
