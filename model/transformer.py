@@ -44,6 +44,27 @@ class ConViT(nn.Module):
         return out
 
 
+class SEViT(nn.Module):
+    def __init__(self, num_layers, d_model, num_heads, dff, rate=0.1):
+        super().__init__()
+        self.d_model = d_model
+        self.stem = VGGStem(d_model)
+        self.encoder = Encoder(num_layers, d_model, num_heads, dff, rate)
+        self.w = nn.Linear(d_model, 1)
+        self.linear = nn.Linear(d_model, 10)
+
+    def forward(self, x):
+        N = x.size(0)
+        out = self.stem(x)
+        out = out.reshape(N, self.d_model, -1)  # [N,D,L]
+        out = out.permute(0, 2, 1)  # [N,L,D]
+        out = self.encoder(out, None)
+        w = self.w(out).softmax(dim=-2)
+        out = out.transpose(1, 2) @ w
+        out = self.linear(out.view(N, -1))
+        return out
+
+
 def test_transformer():
     m = Transformer(num_layers=2, d_model=512, num_heads=8, dff=2048)
     x = torch.randn(1, 50, 512)

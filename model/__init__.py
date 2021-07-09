@@ -1,1 +1,1 @@
-from .transformer import ConViT
+from .transformer import ConViT, SEViT
