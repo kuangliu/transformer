@@ -7,7 +7,9 @@ Reference:
   - [Early Convolutions Helps Transformers See Better](https://arxiv.org/pdf/2106.14881.pdf)
 
 ## Accuracy
+The original ViT model performs really bad on CIFAR10.  
+To achieve better accuracy, I add extra conv layers before transformer encoder.
+
 Model | Acc.
 ------|------
-ViT | 
-ResViT |
+ConViT |

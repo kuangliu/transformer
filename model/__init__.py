@@ -1,1 +1,1 @@
-from .transformer import ResViT
+from .transformer import ConViT

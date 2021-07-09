@@ -6,34 +6,6 @@ from .encoder import Encoder
 from .decoder import Decoder
 
 
-class BasicBlock(nn.Module):
-    expansion = 1
-
-    def __init__(self, in_planes, planes, stride=1):
-        super(BasicBlock, self).__init__()
-        self.conv1 = nn.Conv2d(
-            in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(planes)
-        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3,
-                               stride=1, padding=1, bias=False)
-        self.bn2 = nn.BatchNorm2d(planes)
-
-        self.shortcut = nn.Sequential()
-        if stride != 1 or in_planes != self.expansion*planes:
-            self.shortcut = nn.Sequential(
-                nn.Conv2d(in_planes, self.expansion*planes,
-                          kernel_size=1, stride=stride, bias=False),
-                nn.BatchNorm2d(self.expansion*planes)
-            )
-
-    def forward(self, x):
-        out = F.relu(self.bn1(self.conv1(x)))
-        out = self.bn2(self.conv2(out))
-        out += self.shortcut(x)
-        out = F.relu(out)
-        return out
-
-
 class Transformer(nn.Module):
     def __init__(self, num_layers, d_model, num_heads, dff, rate=0.1):
         super().__init__()
@@ -49,33 +21,33 @@ class Transformer(nn.Module):
         return out
 
 
-class ResViT(nn.Module):
+class ConViT(nn.Module):
     def __init__(self, num_layers, d_model, num_heads, dff, rate=0.1):
         super().__init__()
         self.d_model = d_model
-
-        self.in_planes = 64
+        # Stem
         self.conv1 = nn.Conv2d(
             3, 64, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
-        self.layer1 = self.make_layer(d_model, num_blocks=1, stride=2)
-
+        self.conv2 = nn.Conv2d(64, 128, kernel_size=3,
+                               stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(128)
+        self.conv3 = nn.Conv2d(
+            128, d_model, kernel_size=1, stride=1, padding=0)
+        # ViT
         self.encoder = Encoder(num_layers, d_model, num_heads, dff, rate)
         self.linear = nn.Linear(d_model, 10)
         self.cls_token = nn.Parameter(torch.zeros(1, 1, d_model))
 
-    def make_layer(self, planes, num_blocks, stride):
-        strides = [stride] + [1]*(num_blocks-1)
-        layers = []
-        for stride in strides:
-            layers.append(BasicBlock(self.in_planes, planes, stride))
-            self.in_planes = planes * BasicBlock.expansion
-        return nn.Sequential(*layers)
-
     def forward(self, x):
         N = x.size(0)
+        # Stem
         out = F.relu(self.bn1(self.conv1(x)))
-        out = self.layer1(out)
+        out = F.max_pool2d(out, kernel_size=2, stride=2)
+        out = F.relu(self.bn2(self.conv2(out)))
+        out = F.max_pool2d(out, kernel_size=2, stride=2)
+        out = self.conv3(out)
+        # ViT
         out = out.reshape(N, self.d_model, -1)  # [N,D,L]
         out = out.permute(0, 2, 1)  # [N,L,D]
         cls_tokens = self.cls_token.expand(N, -1, -1)
@@ -95,7 +67,7 @@ def test_transformer():
 
 
 def test_vit():
-    m = ResViT(num_layers=2, d_model=256, num_heads=8, dff=1024)
+    m = ConViT(num_layers=2, d_model=256, num_heads=8, dff=1024)
     x = torch.randn(2, 3, 32, 32)
     y = m(x)
     print(y.shape)
