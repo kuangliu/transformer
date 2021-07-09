@@ -12,4 +12,6 @@ To achieve better accuracy, I add extra 5 conv layers before transformer encoder
 
 Model | Acc.
 ------|------
-ConViT| 91.60%
+VGGStem ViT| 91.92%
+ResNetStem ViT| 
+

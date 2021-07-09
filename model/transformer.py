@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 from .encoder import Encoder
 from .decoder import Decoder
+from .stem import VGGStem, ResNetStem
 
 
 class Transformer(nn.Module):
@@ -25,24 +26,10 @@ class ConViT(nn.Module):
     def __init__(self, num_layers, d_model, num_heads, dff, rate=0.1):
         super().__init__()
         self.d_model = d_model
-        self.stem = self.make_stem()
+        self.stem = ResNetStem(d_model)
         self.encoder = Encoder(num_layers, d_model, num_heads, dff, rate)
         self.linear = nn.Linear(d_model, 10)
         self.cls_token = nn.Parameter(torch.zeros(1, 1, d_model))
-
-    def make_stem(self):
-        cfg = [64, 64, 'M', 128, 128, 'M'] + [self.d_model]
-        layers = []
-        in_channels = 3
-        for x in cfg:
-            if x == 'M':
-                layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
-            else:
-                layers += [nn.Conv2d(in_channels, x, kernel_size=3, padding=1),
-                           nn.BatchNorm2d(x),
-                           nn.ReLU(inplace=True)]
-                in_channels = x
-        return nn.Sequential(*layers)
 
     def forward(self, x):
         N = x.size(0)
