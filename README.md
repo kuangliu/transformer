@@ -8,8 +8,8 @@ Reference:
 
 ## Accuracy
 The original ViT model performs really bad on CIFAR10.  
-To achieve better accuracy, I add extra conv layers before transformer encoder.
+To achieve better accuracy, I add extra 5 conv layers before transformer encoder.
 
 Model | Acc.
 ------|------
-ConViT |
+ConViT| 91.60%

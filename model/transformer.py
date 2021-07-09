@@ -25,29 +25,28 @@ class ConViT(nn.Module):
     def __init__(self, num_layers, d_model, num_heads, dff, rate=0.1):
         super().__init__()
         self.d_model = d_model
-        # Stem
-        self.conv1 = nn.Conv2d(
-            3, 64, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(64)
-        self.conv2 = nn.Conv2d(64, 128, kernel_size=3,
-                               stride=1, padding=1, bias=False)
-        self.bn2 = nn.BatchNorm2d(128)
-        self.conv3 = nn.Conv2d(
-            128, d_model, kernel_size=1, stride=1, padding=0)
-        # ViT
+        self.stem = self.make_stem()
         self.encoder = Encoder(num_layers, d_model, num_heads, dff, rate)
         self.linear = nn.Linear(d_model, 10)
         self.cls_token = nn.Parameter(torch.zeros(1, 1, d_model))
 
+    def make_stem(self):
+        cfg = [64, 64, 'M', 128, 128, 'M'] + [self.d_model]
+        layers = []
+        in_channels = 3
+        for x in cfg:
+            if x == 'M':
+                layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+            else:
+                layers += [nn.Conv2d(in_channels, x, kernel_size=3, padding=1),
+                           nn.BatchNorm2d(x),
+                           nn.ReLU(inplace=True)]
+                in_channels = x
+        return nn.Sequential(*layers)
+
     def forward(self, x):
         N = x.size(0)
-        # Stem
-        out = F.relu(self.bn1(self.conv1(x)))
-        out = F.max_pool2d(out, kernel_size=2, stride=2)
-        out = F.relu(self.bn2(self.conv2(out)))
-        out = F.max_pool2d(out, kernel_size=2, stride=2)
-        out = self.conv3(out)
-        # ViT
+        out = self.stem(x)
         out = out.reshape(N, self.d_model, -1)  # [N,D,L]
         out = out.permute(0, 2, 1)  # [N,L,D]
         cls_tokens = self.cls_token.expand(N, -1, -1)
