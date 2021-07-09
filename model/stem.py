@@ -10,7 +10,7 @@ class VGGStem(nn.Module):
         self.layers = self.make_layers()
 
     def make_layers(self):
-        cfg = [64, 64, 'M', 128, 128, 'M', self.d_model]
+        cfg = [64, 64, 'M', 128, 128, 'M', self.d_model, 'M']
         layers = []
         in_channels = 3
         for x in cfg:

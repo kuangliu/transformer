@@ -14,5 +14,5 @@ Model | Acc.
 ------|------
 VGGStem ViT| 91.92%
 ResNetStem ViT| 91.98%
-SEViT | 92.14%
+SEViT | 92.21%
 
