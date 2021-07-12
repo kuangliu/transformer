@@ -9,7 +9,7 @@ class PosEncoding(nn.Module):
     PE(pos, 2i+1) = cos(pos / 10000^(2i/d_model))
     '''
 
-    def __init__(self):
+    def __init__(self, dropout=0.1):
         super().__init__()
 
     def get_angles(self, pos, i, d_model):
@@ -27,7 +27,21 @@ class PosEncoding(nn.Module):
         angle_rads[:, 0::2] = angle_rads[:, 0::2].sin()
         # apply cos to odd indices in the array; 2i+1
         angle_rads[:, 1::2] = angle_rads[:, 1::2].cos()
-        return x + angle_rads[None, :, :]
+        out = x + angle_rads[None, :, :]
+        out = F.dropout(out, p=self.dropout)
+        return out
+
+
+class LearnedPosEncoding(nn.Module):
+    def __init__(self, num_pos, d_model, dropout=0.1):
+        super().__init__()
+        self.pos_encoding = nn.Parameter(torch.zeros(1, num_pos, d_model))
+        self.dropout = dropout
+
+    def forward(self, x):
+        out = x + self.pos_encoding
+        out = F.dropout(out, p=self.dropout)
+        return out
 
 
 if __name__ == '__main__':

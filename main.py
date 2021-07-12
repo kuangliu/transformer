@@ -54,7 +54,7 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer',
 
 # Model
 print('==> Building model..')
-net = SEViT(6, 512, 8, 1024)
+net = ConViT(6, 512, 8, 1024)
 net = net.to(device)
 if device == 'cuda':
     net = torch.nn.DataParallel(net)

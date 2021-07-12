@@ -4,13 +4,12 @@ import torch.nn.functional as F
 
 from .attention import MultiHeadAttention
 from .encoder import point_wise_feed_forward_network
-from .pos_encoding import PosEncoding
 
 
 class DecoderLayer(nn.Module):
-    def __init__(self, d_model, num_heads, dff, rate=0.1):
+    def __init__(self, d_model, num_heads, dff, dropout=0.1):
         super().__init__()
-        self.rate = rate
+        self.dropout = dropout
 
         self.mha1 = MultiHeadAttention(d_model, num_heads)
         self.mha2 = MultiHeadAttention(d_model, num_heads)
@@ -24,34 +23,30 @@ class DecoderLayer(nn.Module):
     def forward(self, x, enc_output, look_ahead_mask, padding_mask):
         # enc_output: [N,L_src,D]
         attn1, attn_w1 = self.mha1(x, x, x, look_ahead_mask)  # [N,L_tgt,D]
-        attn1 = F.dropout(attn1, p=self.rate)
+        attn1 = F.dropout(attn1, p=self.dropout)
         out1 = self.norm1(attn1 + x)
 
         attn2, attn_w2 = self.mha2(out1, enc_output, enc_output, padding_mask)
-        attn2 = F.dropout(attn2, p=self.rate)
+        attn2 = F.dropout(attn2, p=self.dropout)
         out2 = self.norm1(attn2 + out1)  # [N,L,D]
 
         ffn_out = self.ffn(out2)  # [N,L,D]
-        ffn_out = F.dropout(ffn_out, p=self.rate)
+        ffn_out = F.dropout(ffn_out, p=self.dropout)
         out = self.norm3(ffn_out + out2)  # [N,l,D]
         return out, attn_w1, attn_w2
 
 
 class Decoder(nn.Module):
-    def __init__(self, num_layers, d_model, num_heads, dff, rate=0.1):
+    def __init__(self, num_layers, d_model, num_heads, dff, dropout=0.1):
         super().__init__()
         self.d_model = d_model
         self.num_heads = num_heads
-        self.rate = rate
+        self.dropout = dropout
 
-        self.layers = nn.ModuleList([DecoderLayer(d_model, num_heads, dff, rate)
+        self.layers = nn.ModuleList([DecoderLayer(d_model, num_heads, dff, dropout)
                                      for _ in range(num_layers)])
 
-        self.pos_encoding = PosEncoding()
-
     def forward(self, x, enc_output, look_ahead_mask, padding_mask):
-        out = self.pos_encoding(x)
-        out = F.dropout(out, p=self.rate)
         for layer in self.layers:
             out, _, _ = layer(out, enc_output, look_ahead_mask, padding_mask)
         return out
