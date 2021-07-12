@@ -16,7 +16,7 @@ class MultiHeadAttention(nn.Module):
         self.wq = nn.Linear(d_model, d_model)
         self.wk = nn.Linear(d_model, d_model)
         self.wv = nn.Linear(d_model, d_model)
-        self.out_layer = nn.Linear(d_model, d_model)
+        self.linear = nn.Linear(d_model, d_model)
 
     def split_heads(self, x):
         '''Split the last dimension into (num_heads, depth).
@@ -43,7 +43,7 @@ class MultiHeadAttention(nn.Module):
           mask: mask shape (N,num_heads,Lq,Lk)
 
         Returns:
-          output: sized [N,M,Lq,depth]
+          out: sized [N,M,Lq,depth]
           attention_weights: sized [N,M,Lq,Lk]
         '''
         N, M, Lq, D = q.shape
@@ -60,8 +60,8 @@ class MultiHeadAttention(nn.Module):
             scaled_qk += (mask * -1e9)
 
         attention_weights = F.softmax(scaled_qk, dim=-1)  # [N*M,Lq,Lk]
-        output = attention_weights @ v  # [N*M,Lq,depth]
-        return output.view(N, M, Lq, D), attention_weights.view(N, M, Lq, -1)
+        out = attention_weights @ v  # [N*M,Lq,depth]
+        return out.view(N, M, Lq, D), attention_weights.view(N, M, Lq, -1)
 
     def forward(self, q, k, v, mask):
         N = q.size(0)
@@ -75,7 +75,7 @@ class MultiHeadAttention(nn.Module):
         k = self.split_heads(k)  # [N,num_heads,Lk,depth]
         v = self.split_heads(v)  # [N,num_heads,Lv,depth]
 
-        # scaled_attention: [N,num_heads,Lq,depth]
+        # scaled_attention:  [N,num_heads,Lq,depth]
         # attention_weights: [N,num_heads,Lq,Lk]
         scaled_attention, attention_weights = self.scaled_dot_product_attention(
             q, k, v, mask)
@@ -85,8 +85,8 @@ class MultiHeadAttention(nn.Module):
         # [N,Lq,d_model]
         scaled_attention = scaled_attention.reshape(N, -1, self.d_model)
 
-        output = self.out_layer(scaled_attention)
-        return output, attention_weights
+        out = self.linear(scaled_attention)
+        return out, attention_weights
 
 
 if __name__ == '__main__':

@@ -12,13 +12,13 @@ class Transformer(nn.Module):
         super().__init__()
         self.encoder = Encoder(num_layers, d_model, num_heads, dff, rate)
         self.decoder = Decoder(num_layers, d_model, num_heads, dff, rate)
-        self.out_layer = nn.Linear(d_model, 10)
+        self.linear = nn.Linear(d_model, 10)
 
     def forward(self, x, target, enc_padding_mask, look_ahead_mask, dec_padding_mask):
-        enc_output = self.encoder(x, enc_padding_mask)  # [N,L_src,D]
-        dec_output = self.decoder(
-            target, enc_output, look_ahead_mask, dec_padding_mask)
-        out = self.out_layer(dec_output)  # [N,L_tgt,D]
+        enc_out = self.encoder(x, enc_padding_mask)  # [N,L_src,D]
+        dec_out = self.decoder(
+            target, enc_out, look_ahead_mask, dec_padding_mask)
+        out = self.linear(dec_out)  # [N,L_tgt,D]
         return out
 
 
