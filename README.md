@@ -13,6 +13,7 @@ To achieve better accuracy, I add extra conv layers before transformer encoder.
 Model | Acc.
 ------|------
 VGGStem ViT| 91.92%
-ResNetStem ViT| 91.98%
+ResNetStem ViT| 92.44%
 SEViT | 92.30%
+SEViT (with nn.TransformerEncoder) | 92.74%
 
